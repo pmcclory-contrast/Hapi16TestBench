@@ -48,6 +48,10 @@ const manifest = {
 			options: {routes: {prefix: '/mongoinjection'}}
 		},
 		{
+			plugin: './routes/mongo-injection/collection.js',
+			options: {routes: {prefix: '/mongoinjection/collection/'}}
+		},
+		{
 			plugin: './routes/path-traversal',
 			options: {routes: {prefix: '/path-traversal'}}
 		},
