@@ -8,8 +8,15 @@ function baseHandler (type, safe, request, reply) {
 	const input = safe ? encodeURIComponent(request[type].input)
 		: request[type].input;
 
+	// CONTRAST-21502
+	if (input === 'undefined') {
+		reply('nope');
+		return;
+	}
+
 	const output = '<html>' + input + '</html>';
 	// const output = `<html>${input}</html>`;
+
 	reply(output);
 }
 
