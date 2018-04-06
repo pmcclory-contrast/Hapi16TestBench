@@ -1,6 +1,6 @@
 'use strict';
 const MongoClient = require('mongodb').MongoClient;
-const url = 'mongodb://localhost:27017/hapitestbench';
+const url = process.env.MONGODB_URI || 'mongodb://localhost:27017/hapitestbench';
 
 exports.register = function mongo(server, options, next) {
 	MongoClient.connect(url, function(err, db) {
