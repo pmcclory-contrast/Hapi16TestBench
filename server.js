@@ -11,7 +11,7 @@ const manifest = {
 		debug: {'request': ['error', 'uncaught']}
 	},
 	connections: [{
-		port: PORT
+		port: PORT,
 		address: '0.0.0.0'
 	}],
 	registrations: [
