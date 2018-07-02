@@ -12,6 +12,7 @@ const manifest = {
 	},
 	connections: [{
 		port: PORT
+		address: '0.0.0.0'
 	}],
 	registrations: [
 		// hapi plugins
