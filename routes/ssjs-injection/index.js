@@ -104,11 +104,7 @@ exports.register = function ssjsInjection ( server, options, next ) {
             global[name] = '';
 
             vm.runInThisContext(`${name} = ${input};`);
-            setTimeout(() = > {delete global[name];
-        },
-            1000
-        )
-            ;
+            setTimeout(function() {delete global[name];},1000);
 
             return global[name];
         } catch(e) {
@@ -154,11 +150,7 @@ exports.register = function ssjsInjection ( server, options, next ) {
 
             const script = new vm.Script(`${name} = ${input};`);
             script.runInThisContext();
-            setTimeout(() = > {delete global[name];
-        },
-            1000
-        )
-            ;
+            setTimeout(function() {delete global[name];},1000);
 
             return global[name];
         } catch(e) {
