@@ -40,6 +40,7 @@ const manifest = {
 
 		// route handlers
 		{plugin: './routes/index.js'},
+
 		{
 			plugin: './routes/cmd-injection',
 			options: {routes: {prefix: '/cmd-injection'}}
@@ -67,6 +68,10 @@ const manifest = {
 		{
 			plugin: './routes/ssjs-injection',
 			options: {routes: {prefix: '/ssjs-injection'}}
+		},
+		{
+			plugin: './routes/xxe',
+			options: {routes: {prefix: '/xxe'}}
 		},
 		{
 			plugin: './routes/session/http-only.js',
