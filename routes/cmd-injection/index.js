@@ -52,7 +52,7 @@ exports.register = function cmdInjection ( server, options, next ) {
 
 						/* For synchronous sink methods:  */
 						if (handle.length == 1) {
-							reply((handle(value) || '').toString());
+					    reply((handle(value) || '').toString());
 						}
 
 						/* For asynchronous sink methods: */
@@ -70,7 +70,13 @@ exports.register = function cmdInjection ( server, options, next ) {
 	const sinks = {
 		cp: {
 			exec: ( input, cb ) => cp.exec(input, cb),
-			execSync: input => cp.execSync(input)
+			execSync: input => {
+        try {
+          return cp.execSync(input)
+        } catch(err) {
+          return err.message;
+        }
+      }
 		}
 	};
 
