@@ -53,6 +53,10 @@ const manifest = {
 			plugin: './routes/path-traversal',
 			options: {routes: {prefix: '/path-traversal'}}
 		},
+                {
+			plugin: './routes/unsafe-file-upload',
+			options: {routes: {prefix: '/unsafe-file-upload'}}
+		},
 		{
 			plugin: './routes/reflected-xss/',
 			options: {routes: {prefix: '/reflectedxss'}}
