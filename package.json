@@ -32,5 +32,8 @@
     "pem": "^1.12.3",
     "vision": "^4.1.1",
     "visionary": "^6.0.2"
+  },
+  "devDependencies": {
+    "@contrast/eslint-config": "^1.0.3"
   }
 }
