@@ -73,43 +73,31 @@ exports.register = function ssjsInjection ( server, options, next ) {
 	};
 
 	const vmRunInCtx = input => {
-		try {
-            const sb = {value: '', process};
-            const ctx = vm.createContext(sb);
+    const sb = {value: '', process};
+    const ctx = vm.createContext(sb);
 
-            vm.runInContext(`value = ${input};`, ctx);
+    vm.runInContext(`value = ${input};`, ctx);
 
-            return sb.value;
-        } catch(e) {
-			return;
-		}
+    return sb.value;
 	};
 
 	const vmRunInNewCtx = input => {
-		try {
-            const sb = {value: '', process};
-            vm.runInNewContext(`value = ${input};`, sb);
+    const sb = {value: '', process};
+    vm.runInNewContext(`value = ${input};`, sb);
 
-            return sb.value;
-        } catch(e) {
-			return;
-		}
+    return sb.value;
 	};
 
 	const vmRunInThisCtx = input => {
-		try {
-            const epoch = new Date().getTime();
-            const name = `value${epoch}`;
+    const epoch = new Date().getTime();
+    const name = `value${epoch}`;
 
-            global[name] = '';
+    global[name] = '';
 
-            vm.runInThisContext(`${name} = ${input};`);
-            setTimeout(function() {delete global[name];},1000);
+    vm.runInThisContext(`${name} = ${input};`);
+    setTimeout(function() {delete global[name];},1000);
 
-            return global[name];
-        } catch(e) {
-			return;
-		}
+    return global[name];
 	};
 
 	const vmCreateContext = input => {
@@ -117,45 +105,33 @@ exports.register = function ssjsInjection ( server, options, next ) {
 	};
 
 	const vmScriptRunInCtx = input => {
-		try {
-            const sb = {value: '', process};
-            const ctx = vm.createContext(sb);
-            const script = new vm.Script(`value = ${input};`);
-            script.runInContext(ctx);
+    const sb = {value: '', process};
+    const ctx = vm.createContext(sb);
+    const script = new vm.Script(`value = ${input};`);
+    script.runInContext(ctx);
 
-            return sb.value;
-        } catch(e) {
-			return;
-		}
+    return sb.value;
 	};
 
 	const vmScriptRunInNewCtx = input => {
-		try {
-            const sb = {value: '', process};
-            const script = new vm.Script(`value = ${input};`);
-            script.runInNewContext(sb);
+    const sb = {value: '', process};
+    const script = new vm.Script(`value = ${input};`);
+    script.runInNewContext(sb);
 
-            return sb.value;
-        } catch(e) {
-			return;
-		}
+    return sb.value;
 	};
 
 	const vmScriptRunInThisCtx = input => {
-		try {
-            const epoch = new Date().getTime();
-            const name = `value${epoch}`;
+    const epoch = new Date().getTime();
+    const name = `value${epoch}`;
 
-            global[name] = '';
+    global[name] = '';
 
-            const script = new vm.Script(`${name} = ${input};`);
-            script.runInThisContext();
-            setTimeout(function() {delete global[name];},1000);
+    const script = new vm.Script(`${name} = ${input};`);
+    script.runInThisContext();
+    setTimeout(function() {delete global[name];},1000);
 
-            return global[name];
-        } catch(e) {
-			return;
-		}
+    return global[name];
 	};
 
 	[
