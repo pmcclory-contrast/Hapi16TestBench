@@ -4,7 +4,7 @@ const glue = require('glue');
 const path = require('path');
 const pem = require('pem');
 
-const PORT = process.env.PORT || 3000;
+const { PORT = 3000, HOST = 'localhost' } = process.env;
 
 const manifest = {
   server: {
@@ -13,7 +13,7 @@ const manifest = {
   connections: [
     {
       port: PORT,
-      address: '0.0.0.0'
+      address: HOST
     }
   ],
   registrations: [
