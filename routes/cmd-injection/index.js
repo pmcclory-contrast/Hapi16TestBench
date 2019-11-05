@@ -5,88 +5,82 @@ const Hoek = require('hoek');
 
 const pluginName = 'hapitestbench.cmdinjection';
 
-exports.register = function cmdInjection ( server, options, next ) {
+exports.register = function cmdInjection(server, options, next) {
+  /* ########################################################### */
+  /* ### Base index HTML page                                ### */
+  /* ########################################################### */
+  server.route({
+    method: 'GET',
+    path: '/',
+    handler: {
+      view: 'cmd-injection'
+    }
+  });
 
-	/* ########################################################### */
-	/* ### Base index HTML page                                ### */
-	/* ########################################################### */
-	server.route({
-		method: 'GET',
-		path: '/',
-		handler: {
-			view: 'cmd-injection'
-		}
-	});
+  /* ########################################################### */
+  /* ### Build API routes programmatically                  #### */
+  /* ########################################################### */
 
-	/* ########################################################### */
-	/* ### Build API routes programmatically                  #### */
-	/* ########################################################### */
+  const methods = ['DELETE', 'GET', 'OPTIONS', 'PATCH', 'PUT', 'POST'];
+  const inputTypes = ['query', 'params', 'headers', 'state', 'payload'];
+  const inputSegmentLookup = {
+    payload: '/body',
+    headers: '/headers',
+    params: '/url-params',
+    query: '/query',
+    state: '/cookies'
+  };
 
-	const methods = ['DELETE', 'GET', 'OPTIONS', 'PATCH', 'PUT', 'POST'];
-	const inputTypes = ['query', 'params', 'headers', 'state', 'payload'];
-	const inputSegmentLookup = {
-		payload : '/body',
-		headers : '/headers',
-		params  : '/url-params',
-		query   : '/query',
-		state   : '/cookies'
-	};
+  const makeRouteHandlers = (sinkSegment, handle) => {
+    inputTypes.forEach((type) => {
+      const dataPath = `${type}.input`;
+      const inputSegment = inputSegmentLookup[type];
 
-	const makeRouteHandlers = ( sinkSegment, handle ) => {
-		inputTypes.forEach(type => {
+      server.route([
+        {
+          path: `${inputSegment}/safe${sinkSegment}`,
+          method: methods,
+          handler: (_, reply) => reply('SAFE')
+        },
+        {
+          path: `${inputSegment}/unsafe${sinkSegment}`,
+          method: methods,
+          handler: (request, reply) => {
+            const value = Hoek.reach(request, dataPath);
 
-			const dataPath = `${type}.input`;
-			const inputSegment = inputSegmentLookup[type];
+            /* For synchronous sink methods:  */
+            if (handle.length == 1) {
+              reply((handle(value) || '').toString());
+            } else {
+              /* For asynchronous sink methods: */
+              handle(value || '', (error, data) => {
+                reply((error || data || '').toString());
+              });
+            }
+          }
+        }
+      ]);
+    });
+  };
 
-			server.route(
-				[{
-					path    : `${inputSegment}/safe${sinkSegment}`,
-					method  : methods,
-					handler : ( _, reply ) => reply('SAFE')
-				}, {
-					path    : `${inputSegment}/unsafe${sinkSegment}`,
-					method  : methods,
-					handler : ( request, reply ) => {
-
-						const value = Hoek.reach(request, dataPath);
-
-						/* For synchronous sink methods:  */
-						if (handle.length == 1) {
-					    reply((handle(value) || '').toString());
-						}
-
-						/* For asynchronous sink methods: */
-						else {
-							handle(value || '', ( error, data ) => {
-								reply((error || data || '').toString());
-							});
-						}
-
-					}
-				}]);
-		});
-	};
-
-	const sinks = {
-		cp: {
-			exec: ( input, cb ) => cp.exec(input, cb),
-			execSync: input => {
+  const sinks = {
+    cp: {
+      exec: (input, cb) => cp.exec(input, cb),
+      execSync: (input) => {
         try {
-          return cp.execSync(input)
-        } catch(err) {
+          return cp.execSync(input);
+        } catch (err) {
           return err.message;
         }
       }
-		}
-	};
+    }
+  };
 
-	[
-		['/exec'     , sinks.cp.exec    ],
-		['/exec-sync', sinks.cp.execSync]
-	].forEach(
-		confArgs => makeRouteHandlers.apply(null, confArgs));
+  [['/exec', sinks.cp.exec], ['/exec-sync', sinks.cp.execSync]].forEach(
+    (confArgs) => makeRouteHandlers(...confArgs)
+  );
 
-	next();
+  next();
 };
 
 exports.register.attributes = { name: pluginName };

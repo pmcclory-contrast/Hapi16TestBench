@@ -47,7 +47,7 @@ exports.register = function ssjsInjection(server, options, next) {
         {
           path: `${inputSegment}/safe${sinkSegment}`,
           method: methods,
-          handler: ( request, reply ) => {
+          handler: (request, reply) => {
             const value = handle('"Safe and trusted"');
             return reply((value || '').toString());
           }
@@ -55,7 +55,7 @@ exports.register = function ssjsInjection(server, options, next) {
         {
           path: `${inputSegment}/unsafe${sinkSegment}`,
           method: methods,
-          handler: ( request, reply ) => {
+          handler: (request, reply) => {
             const value = handle(Hoek.reach(request, dataPath));
             return reply((value || '').toString());
           }
@@ -78,7 +78,7 @@ exports.register = function ssjsInjection(server, options, next) {
   };
 
   const vmRunInNewCtx = (input) => {
-    const sb = {value: '', process};
+    const sb = { value: '', process };
     vm.runInNewContext(`value = ${input};`, sb);
 
     return sb.value;
@@ -91,17 +91,19 @@ exports.register = function ssjsInjection(server, options, next) {
     global[name] = '';
 
     vm.runInThisContext(`${name} = ${input};`);
-    setTimeout(function() {delete global[name];},1000);
+    setTimeout(function() {
+      delete global[name];
+    }, 1000);
 
     return global[name];
   };
 
-  const vmCreateContext = input => {
+  const vmCreateContext = (input) => {
     throw new Error('Not implemented.');
   };
 
   const vmScriptRunInCtx = (input) => {
-    const sb = {value: '', process};
+    const sb = { value: '', process };
     const ctx = vm.createContext(sb);
     const script = new vm.Script(`value = ${input};`);
     script.runInContext(ctx);
@@ -110,7 +112,7 @@ exports.register = function ssjsInjection(server, options, next) {
   };
 
   const vmScriptRunInNewCtx = (input) => {
-    const sb = {value: '', process};
+    const sb = { value: '', process };
     const script = new vm.Script(`value = ${input};`);
     script.runInNewContext(sb);
 

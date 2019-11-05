@@ -17,8 +17,8 @@ exports.register = function unsafeFileUpload(server, options, next) {
     method: 'POST',
     path: '/submit',
     config: {
-      handler: function (request, reply) {
-        const payload = request.payload;
+      handler(request, reply) {
+        const { payload } = request;
 
         if (payload.filem) {
           const name = payload.filem.hapi.filename;
@@ -29,7 +29,7 @@ exports.register = function unsafeFileUpload(server, options, next) {
 
           payload.filem.pipe(file);
         }
-        
+
         reply('OK');
       },
       payload: {
