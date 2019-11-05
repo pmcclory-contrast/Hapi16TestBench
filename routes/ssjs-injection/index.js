@@ -5,123 +5,121 @@ const vm = require('vm');
 
 const pluginName = 'hapitestbench.ssjsinjection';
 
-exports.register = function ssjsInjection ( server, options, next ) {
+exports.register = function ssjsInjection(server, options, next) {
+  /* ########################################################### */
+  /* ### Base index HTML page                                ### */
+  /* ########################################################### */
+  server.route({
+    method: 'GET',
+    path: '/',
+    handler: {
+      view: 'ssjs-injection'
+    }
+  });
 
-	/* ########################################################### */
-	/* ### Base index HTML page                                ### */
-	/* ########################################################### */
-	server.route({
-		method: 'GET',
-		path: '/',
-		handler: {
-			view: 'ssjs-injection'
-		}
-	});
+  /* ########################################################### */
+  /* ### Build API routes programmatically                  #### */
+  /* ########################################################### */
 
-	/* ########################################################### */
-	/* ### Build API routes programmatically                  #### */
-	/* ########################################################### */
+  /*  Routes:                                                    */
+  /*  /ssjs-injection/query/[un]safe/eval                  ,     */
+  /*  /ssjs-injection/query/[un]safe/function              ,     */
+  /*  /ssjs-injection/query/[un]safe/vm-create-context     ,     */
+  /*  /ssjs-injection/query/[un]safe/vm-run-in-context     ,     */
+  /*  /ssjs-injection/query/[un]safe/vm-run-in-new-context , ... */
 
-	/*  Routes:                                                    */
-	/*  /ssjs-injection/query/[un]safe/eval                  ,     */
-	/*  /ssjs-injection/query/[un]safe/function              ,     */
-	/*  /ssjs-injection/query/[un]safe/vm-create-context     ,     */
-	/*  /ssjs-injection/query/[un]safe/vm-run-in-context     ,     */
-	/*  /ssjs-injection/query/[un]safe/vm-run-in-new-context , ... */
+  const methods = ['DELETE', 'GET', 'OPTIONS', 'PATCH', 'PUT', 'POST'];
+  const inputTypes = ['query', 'params', 'headers', 'state', 'payload'];
+  const inputSegmentLookup = {
+    payload: '/body',
+    headers: '/headers',
+    params: '/url-params',
+    query: '/query',
+    state: '/cookies'
+  };
 
-	const methods = ['DELETE', 'GET', 'OPTIONS', 'PATCH', 'PUT', 'POST'];
-	const inputTypes = ['query', 'params', 'headers', 'state', 'payload'];
-	const inputSegmentLookup = {
-		payload : '/body',
-		headers : '/headers',
-		params  : '/url-params',
-		query   : '/query',
-		state   : '/cookies'
-	};
+  const makeRouteHandlers = (sinkSegment, handle) => {
+    inputTypes.forEach((type) => {
+      const dataPath = `${type}.input`;
+      const inputSegment = inputSegmentLookup[type];
 
-	const makeRouteHandlers = ( sinkSegment, handle ) => {
-		inputTypes.forEach(type => {
+      server.route([
+        {
+          path: `${inputSegment}/safe${sinkSegment}`,
+          method: methods,
+          handler: (request, reply) => {
+            const value = handle('"Safe and trusted"');
+            return reply((value || '').toString());
+          }
+        },
+        {
+          path: `${inputSegment}/unsafe${sinkSegment}`,
+          method: methods,
+          handler: (request, reply) => {
+            const value = handle(Hoek.reach(request, dataPath));
+            return reply((value || '').toString());
+          }
+        }
+      ]);
+    });
+  };
 
-			const dataPath = `${type}.input`;
-			const inputSegment = inputSegmentLookup[type];
+  const _eval = (input) => eval(input.toString());
 
-			server.route(
-				[{
-					path    : `${inputSegment}/safe${sinkSegment}`,
-					method  : methods,
-					handler : ( request, reply ) => {
-						const value = handle('"Safe and trusted"');
-						return reply((value || '').toString());
-					}
-				}, {
-					path    : `${inputSegment}/unsafe${sinkSegment}`,
-					method  : methods,
-					handler : ( request, reply ) => {
-						const value = handle(Hoek.reach(request, dataPath));
-						return reply((value || '').toString());
-					}
-				}]);
-		});
-	};
+  const _Function = (input) => Function(input)();
 
-	const _eval = input => {
-		return eval(input.toString());
-	};
-
-	const _Function = input => {
-		return Function(input)();
-	};
-
-	const vmRunInCtx = input => {
-    const sb = {value: '', process};
+  const vmRunInCtx = (input) => {
+    const sb = { value: '', process };
     const ctx = vm.createContext(sb);
 
     vm.runInContext(`value = ${input};`, ctx);
 
     return sb.value;
-	};
+  };
 
-	const vmRunInNewCtx = input => {
-    const sb = {value: '', process};
+  const vmRunInNewCtx = (input) => {
+    const sb = { value: '', process };
     vm.runInNewContext(`value = ${input};`, sb);
 
     return sb.value;
-	};
+  };
 
-	const vmRunInThisCtx = input => {
+  const vmRunInThisCtx = (input) => {
     const epoch = new Date().getTime();
     const name = `value${epoch}`;
 
     global[name] = '';
 
     vm.runInThisContext(`${name} = ${input};`);
-    setTimeout(function() {delete global[name];},1000);
+    setTimeout(function() {
+      delete global[name];
+    }, 1000);
 
     return global[name];
-	};
+  };
 
-	const vmCreateContext = input => {
-		throw new Error('Not implemented.');
-	};
+  const vmCreateContext = (input) => {
+    throw new Error('Not implemented.');
+  };
 
-	const vmScriptRunInCtx = input => {
-    const sb = {value: '', process};
+  const vmScriptRunInCtx = (input) => {
+    const sb = { value: '', process };
     const ctx = vm.createContext(sb);
     const script = new vm.Script(`value = ${input};`);
     script.runInContext(ctx);
 
     return sb.value;
-	};
+  };
 
-	const vmScriptRunInNewCtx = input => {
-    const sb = {value: '', process};
+  const vmScriptRunInNewCtx = (input) => {
+    const sb = { value: '', process };
     const script = new vm.Script(`value = ${input};`);
     script.runInNewContext(sb);
 
     return sb.value;
-	};
+  };
 
-	const vmScriptRunInThisCtx = input => {
+  const vmScriptRunInThisCtx = (input) => {
     const epoch = new Date().getTime();
     const name = `value${epoch}`;
 
@@ -129,25 +127,25 @@ exports.register = function ssjsInjection ( server, options, next ) {
 
     const script = new vm.Script(`${name} = ${input};`);
     script.runInThisContext();
-    setTimeout(function() {delete global[name];},1000);
+    setTimeout(function() {
+      delete global[name];
+    }, 1000);
 
     return global[name];
-	};
+  };
 
-	[
-		['/eval'                         , _eval               ],
-		['/function'                     , _Function           ],
-		['/vm-run-in-context'            , vmRunInCtx          ],
-		['/vm-run-in-new-context'        , vmRunInNewCtx       ],
-		['/vm-run-in-this-context'       , vmRunInThisCtx      ],
-		['/vm-create-context'            , vmCreateContext     ],
-		['/vm-script-run-in-context'     , vmScriptRunInCtx    ],
-		['/vm-script-run-in-new-context' , vmScriptRunInNewCtx ],
-		['/vm-script-run-in-this-context', vmScriptRunInThisCtx]
-	].forEach(
-		confArgs => makeRouteHandlers.apply(null, confArgs));
-
-	next();
+  [
+    ['/eval', _eval],
+    ['/function', _Function],
+    ['/vm-run-in-context', vmRunInCtx],
+    ['/vm-run-in-new-context', vmRunInNewCtx],
+    ['/vm-run-in-this-context', vmRunInThisCtx],
+    ['/vm-create-context', vmCreateContext],
+    ['/vm-script-run-in-context', vmScriptRunInCtx],
+    ['/vm-script-run-in-new-context', vmScriptRunInNewCtx],
+    ['/vm-script-run-in-this-context', vmScriptRunInThisCtx]
+  ].forEach((confArgs) => makeRouteHandlers(...confArgs));
+  next();
 };
 
 exports.register.attributes = { name: pluginName };
