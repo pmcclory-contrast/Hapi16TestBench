@@ -123,7 +123,8 @@ function start() {
       }
 
       server.start(() => {
-			console.log(`Server running at: ${server.connections[0].info.uri}`); // eslint-disable-line
+        const { address, protocol, port } = server.info;
+        console.log('Server listening on %s://%s:%d', protocol, address, port);
       });
     }
   );
